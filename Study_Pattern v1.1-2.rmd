@@ -1,0 +1,458 @@
+---
+title: "Study Patterns"
+author: ""
+date: "12/3/2019"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE,message=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(MASS)
+library(gmodels)
+```
+
+## Introduction
+
+<font size="4.5"><span style="color:steelblue">**Why we chose this topic?**</span>    
+ - Study pattern  
+ - Time taken to understand  
+ - Overall performance
+
+<span style="color:steelblue">***Null Hypothesis:***</span>     
+Study pattern has no effect on academic performance
+
+<span style="color:steelblue">***Alternative Hypothesis:***</span>    
+Study pattern has effect on academic performance</font>
+
+## Dataset
+
+<span style="color:steelblue">**Data Collection**</span>
+  
++ <font size="4.5">Research on study patterns of Master's Students 
+
+  - Family Responsibilities   
+  - Professional Life    
+  - Considerable Break after Bachelor's
+  
++ Survey using google forms with 13 questions from first semester students of UOP and SFSU about their study patterns.</font>
+
+<span style="color:steelblue">**Type of Sample**</span>
+
+- <font size="4.5">Convenience sampling: Participants are readily available.   
+
+- Number of survey responses : 58.</font>
+
+## Dataset
+
+<font size="4.5"><span style="color:steelblue">**Scale of Measurement**</span>
+
+The data set is a mixture of nominal, ordinal, interval and ratio data.
+
+*Example*:   
+    Ratio - Break Years  
+    Interval - No of hours of study  
+    Ordinal - Grades  
+    Nominal - Time of Study  
+
+<span style="color:steelblue">**Preprocessing**</span>
+
+Renamed dataset columns for convenience.</font>
+
+```{r include=FALSE, message=FALSE, warning=FALSE}
+study <- read.csv("Survey.csv")
+study <- study[-1]
+names(study) <- c("breakYears","studyDaysWk","studyTimeWk","PrfTm","softDln","teacherEffect","peerPress","notEnouTime","physAct","overGrade","studyPerf","stdPatrn","moreTime")
+study
+```
+
+
+## Exploratory Data Analysis
+
+```{r fig.height=3, message=FALSE, warning=FALSE}
+#g <- ggplot(study$studyTimeWk, aes(study$breakYears))
+#g + geom_bar(aes(fill = drv))
+
+library(ggplot2)
+library(gridExtra)
+library(egg)
+
+p1 <- ggplot(study,aes(x=factor(breakYears,levels=levels(study$breakYears)), y = mean(as.numeric(study$studyTimeWk)))) + geom_bar(stat="identity",fill="steelblue")+ labs(title="Break Years vs Avg Study Time", x="Break Years", y = "Average study time in a week ") + scale_x_discrete(labels=c("0 - Recent graduate" = "0", "1-3 years"="1-3","3-6 years" = "3-6","6-9 years" = "6-9","More than 9 years" = ">9"))
+p2 <- ggplot(study, aes(breakYears, fill = as.factor(study$overGrade))) + geom_bar()+ labs(title="Break Years vs Overall grade", x="Break Years", y = "No. of students with each grade") + scale_x_discrete(labels=c("0 - Recent graduate" = "0", "1-3 years"="1-3","3-6 years" = "3-6","6-9 years" = "6-9","More than 9 years" = ">9")) + labs(fill = "Overall Grade")
+
+ggarrange(p1, p2, ncol =2)
+#grid.arrange(p1, p2, ncol =2)
+#multiplot(p1, p2, cols=2)
+```
+<span style="color:steelblue">**Interpretation**</span>
+
+ -<font size="4"> Recent graduates have the highest mean hours in studying and most of them have A grade.</font>   
+ -<font size="4"> Students in 6-9 years category has the least mean hours and equal proportions of grade.</font>    
+ -<font size="4"> Surprisingly, even though students with more than 9 years dont spend much time in studying they have mostly A- grade.</font>  
+
+
+## Assumptions
+
+<font size="4.5"><span style="color:steelblue">**Assumptions for Chi-Sq and Log-linear:**</span>  
+
+Log-linear is an extension of Chi-Square  
+
+Assumptions are same for both the tests.  
+1) Independence of data  
+2) Test should be performed on categorical data  
+3) Test should not be performed on repeated measures design.  
+4)  Expected frequency should be greater than 5 in each group. If expected frequency is less than 5 then include Fisher's exact test.  
+</font>
+
+
+## Chi Square 
+
+```{r include=FALSE,message=FALSE}
+CrossTable(study$breakYears, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+CrossTable(study$studyDaysWk, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+CrossTable(study$studyTimeWk, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+CrossTable(study$PrfTm, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+CrossTable(study$softDln, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+CrossTable(study$teacherEffect, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+CrossTable(study$peerPress, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+CrossTable(study$notEnouTime, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+CrossTable(study$physAct, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+CrossTable(study$studyPerf, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+CrossTable(study$stdPatrn, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+CrossTable(study$moreTime, study$overGrade, fisher = TRUE, chisq = TRUE, expected = TRUE)
+
+```
+
+<font size="4.5">Total Observations in Table: 58  
+Test : Chi Square  
+Dependent Variable = OverGrade</font>  
+
+![](Chisquare.PNG)
+
+
+## Results of Chi Square Test
+
+<font size="4.5">The only independent variable found to be significant is teacherEffect with a p-value of 0.02.</font>
+
+---------------------------------------------------------------------------------
+study$teacherEffect         A       A-          B       B-           Row Total 
+-------------------- ---------- ---------- ----------- ----------- --------------
+No                        1        11           4         0           16
+
+Yes                       17       15          6          4          42
+
+Column Total              18       26          10         4          58
+-----------------------------------------------------------------------------------  
+
+<font size="4.5">From the above chisquare test we can conclude that overall grade is dependent on Teacher Effect variable, which means that there is statistical relation between two variables. </font>
+
+
+
+## Log Linear
+
+<font size="4.5">Log Linear model is the association and interaction patterns among categorical variables.
+
+```{r include=FALSE, message=FALSE}
+surveyContingencyTable<-xtabs(~ breakYears + studyDaysWk + overGrade , data = study)
+caturated <-loglm(~ breakYears*studyDaysWk*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -breakYears:studyDaysWk:overGrade)
+anova(caturated, threeWay)
+
+
+surveyContingencyTable<-xtabs(~ breakYears + studyTimeWk + overGrade , data = study)
+caturated <-loglm(~ breakYears*studyTimeWk*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -breakYears:studyTimeWk:overGrade)
+anova(caturated, threeWay)
+
+
+surveyContingencyTable<-xtabs(~ breakYears + PrfTm + overGrade , data = study)
+caturated <-loglm(~ breakYears*PrfTm*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -breakYears:PrfTm:overGrade)
+anova(caturated, threeWay)
+
+
+surveyContingencyTable<-xtabs(~ breakYears + softDln + overGrade , data = study)
+caturated <-loglm(~ breakYears*softDln*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -breakYears:softDln:overGrade)
+anova(caturated, threeWay)
+
+
+surveyContingencyTable<-xtabs(~ breakYears + teacherEffect + overGrade , data = study)
+caturated <-loglm(~ breakYears*teacherEffect*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -breakYears:teacherEffect:overGrade)
+anova(caturated, threeWay)
+
+
+surveyContingencyTable<-xtabs(~ breakYears + peerPress + overGrade , data = study)
+caturated <-loglm(~ breakYears*peerPress*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -breakYears:peerPress:overGrade)
+anova(caturated, threeWay)
+
+
+surveyContingencyTable<-xtabs(~ breakYears + notEnouTime + overGrade , data = study)
+caturated <-loglm(~ breakYears*notEnouTime*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -breakYears:notEnouTime:overGrade)
+anova(caturated, threeWay)
+
+
+surveyContingencyTable<-xtabs(~ breakYears + physAct + overGrade , data = study)
+caturated <-loglm(~ breakYears*physAct*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -breakYears:physAct:overGrade)
+anova(caturated, threeWay)
+
+
+surveyContingencyTable<-xtabs(~ studyDaysWk + studyTimeWk + overGrade , data = study)
+caturated <-loglm(~ studyDaysWk*studyTimeWk*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyDaysWk:studyTimeWk:overGrade)
+anova(caturated, threeWay)
+
+
+surveyContingencyTable<-xtabs(~ studyDaysWk + PrfTm + overGrade , data = study)
+caturated <-loglm(~ studyDaysWk*PrfTm*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyDaysWk:PrfTm:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyDaysWk + softDln + overGrade , data = study)
+caturated <-loglm(~ studyDaysWk*softDln*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyDaysWk:softDln:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyDaysWk + teacherEffect + overGrade , data = study)
+caturated <-loglm(~ studyDaysWk*teacherEffect*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyDaysWk:teacherEffect:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyDaysWk + peerPress + overGrade , data = study)
+caturated <-loglm(~ studyDaysWk*peerPress*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyDaysWk:peerPress:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyDaysWk + notEnouTime + overGrade , data = study)
+caturated <-loglm(~ studyDaysWk*notEnouTime*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyDaysWk:notEnouTime:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyDaysWk + physAct + overGrade , data = study)
+caturated <-loglm(~ studyDaysWk*physAct*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyDaysWk:physAct:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyTimeWk+ PrfTm + overGrade , data = study)
+caturated <-loglm(~ studyTimeWk*PrfTm*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyTimeWk:PrfTm:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyTimeWk+ softDln + overGrade , data = study)
+caturated <-loglm(~ studyTimeWk*softDln*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyTimeWk:softDln:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyTimeWk+ teacherEffect + overGrade , data = study)
+caturated <-loglm(~ studyTimeWk*teacherEffect*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyTimeWk:teacherEffect:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyTimeWk+ peerPress + overGrade , data = study)
+caturated <-loglm(~ studyTimeWk*peerPress*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyTimeWk:peerPress:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyTimeWk+ notEnouTime + overGrade , data = study)
+caturated <-loglm(~ studyTimeWk*notEnouTime*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyTimeWk:notEnouTime:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyTimeWk+ physAct + overGrade , data = study)
+caturated <-loglm(~ studyTimeWk*physAct*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyTimeWk:physAct:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ PrfTm+ softDln+ overGrade , data = study)
+caturated <-loglm(~ PrfTm*softDln*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -PrfTm:softDln:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ PrfTm+ teacherEffect+ overGrade , data = study)
+caturated <-loglm(~ PrfTm*teacherEffect*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -PrfTm:teacherEffect:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ PrfTm+ peerPress+ overGrade , data = study)
+caturated <-loglm(~ PrfTm*peerPress*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -PrfTm:peerPress:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ PrfTm+ notEnouTime+ overGrade , data = study)
+caturated <-loglm(~ PrfTm*notEnouTime*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -PrfTm:notEnouTime:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ PrfTm+ physAct+ overGrade , data = study)
+caturated <-loglm(~ PrfTm*physAct*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -PrfTm:physAct:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ softDln+ teacherEffect+ overGrade , data = study)
+caturated <-loglm(~ softDln*teacherEffect*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -softDln:teacherEffect:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ softDln+ peerPress+ overGrade , data = study)
+caturated <-loglm(~ softDln*peerPress*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -softDln:peerPress:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ softDln+ notEnouTime+ overGrade , data = study)
+caturated <-loglm(~ softDln*notEnouTime*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -softDln:notEnouTime:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ softDln+ physAct+ overGrade , data = study)
+caturated <-loglm(~ softDln*physAct*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -softDln:physAct:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ teacherEffect+ peerPress+ overGrade , data = study)
+caturated <-loglm(~ teacherEffect*peerPress*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -teacherEffect:peerPress:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ teacherEffect+ notEnouTime+ overGrade , data = study)
+caturated <-loglm(~ teacherEffect*notEnouTime*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -teacherEffect:notEnouTime:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ teacherEffect+ physAct+ overGrade , data = study)
+caturated <-loglm(~ teacherEffect*physAct*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -teacherEffect:physAct:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ notEnouTime+ physAct+ overGrade , data = study)
+caturated <-loglm(~ notEnouTime*physAct*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -notEnouTime:physAct:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyPerf+ stdPatrn+ overGrade , data = study)
+caturated <-loglm(~ studyPerf*stdPatrn*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyPerf:stdPatrn:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ studyPerf+ moreTime+ overGrade , data = study)
+caturated <-loglm(~ studyPerf*moreTime*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -studyPerf:moreTime:overGrade)
+anova(caturated, threeWay)
+
+
+
+surveyContingencyTable<-xtabs(~ stdPatrn+ moreTime+ overGrade , data = study)
+caturated <-loglm(~ stdPatrn*moreTime*overGrade, data = surveyContingencyTable )
+threeWay<-update(caturated, .~. -stdPatrn:moreTime:overGrade)
+anova(caturated, threeWay)
+```
+  + Performed Log Linear tests for different combinations of variables      
+    - Lowest p-value obtained: 0.08    
+    - The variable combination: notEnouTime+ physAct+ overGrade   
+    - Log Linear tests on other combinations of variables gave p-value above 0.1</font> 
+    
+
+## Conclusion
+
+<font size="4.5"><span style="color:steelblue">**Limitations of Research**</span>  
+  - Considered only semester one students  
+  - Survey questions were inadequate  
+  - No continous data  
+
+<span style="color:steelblue">**Internal validity:**</span>          
+  - Sample from two colleges with two majors - curriculum and structure of coursework is different    
+  - End of Semester - More time spend to study    
+  - Prior knowledge of subject/concept    
+
+<span style="color:steelblue">**External Validity:**</span>    
+  - Lack of random selection   
+  - Temporal validity - Beginning/Mid/End Semester
+
+<span style="color:steelblue">**Statistical validity:**</span>     
+  - Sample size vey small i.e 58</font>
+
+
+## References
+
+<font size="4">[1] Reference: _"Discovering Statistics using R"_  - Andy Field, Jeremy Miles, Zoe Field, 2012. </font> 
+
+<font size="4">[2] J. Geralds, “Sega Ends Production of Dreamcast,”vnunet.com, para. 2, Jan. 31, 2007. [Online]. Available: http://nli.vnunet.com/news/1116995. [Accessed Sept. 12, 2007]. </font>  
+
+<font size="4">[2] _Multiple Plot Function For Ggplot2 Plots._ [Online]. Available: https://www.rdocumentation.org/packages/scater/versions/1.0.4/topics/multiplot. [Accessed Dec. 1, 2019]. </font>  
+
+<font size="4">[3] _Multiple graphs on one page_ (ggplot2). [Online]. Available: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_%28ggplot2%29/ [Accessed Dec. 1,2019]. </font> 
+
+<font size="4">[4] Del Siegle, _"External Validity (Generalizability)"_ [Online]. Available: https://researchbasics.education.uconn.edu/external_validity/# [Accessed Nov. 26,2019].  </font>
+
+## References (Continued)
+
+<font size="4">[5] Del Siegle, _"Non Parametric Data Analysis, Chi-Square"_ [Online]. Available: https://researchbasics.education.uconn.edu/anova_regression_and_chi-square/ [Accessed Nov. 29, 2019]. </font>  
+
+<font size="4">[6] Del Siegle, _"NULL AND ALTERNATIVE HYPOTHESES"_ [Online]. Available: https://researchbasics.education.uconn.edu/null-and-alternative-hypotheses/ [Accessed Nov. 25].  </font> 
+
+<font size="4">[7] Aleksandra Slavkovic, _"Stat 504, Lecture 16"_ [Online]. Available: http://personal.psu.edu/abs12//stat504/Lecture/lec16.pdf [E-book].  </font>
